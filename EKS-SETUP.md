@@ -4,7 +4,7 @@ AT FIRST YOU NEED TO CREATE A CLUSTER IN AWS.
 
 THERE ARE 3 WAYS TO CREATE EKS CLUSTER. THEY ARE:
 
-	1. TO CREATE MANUALLY BY USING AWS DASHBOARD WHICH WILL creating vpc, creating private and public subnet, attaching our vpc with internet gateway, creating roles, permissions and 
+	1. TO CREATE MANUALLY BY USING AWS DASHBOARD WHICH includes creating vpc, creating private and public subnet, attaching our vpc with internet gateway, creating roles, permissions and 
 		policies and attaching to our kubernetes cluster. such as creating, deleting and modifying policies and roles to use our cluster.
 
 
@@ -20,7 +20,7 @@ THERE ARE 3 WAYS TO CREATE EKS CLUSTER. THEY ARE:
 			terraform plan
 			terraform apply
 
-		PS. It is the possible to run our app in the eks cluster using our free-tier account because the resources available for free-tier is not enough to run the app smoothly.
+		PS. It is not the possible to run our app in the eks cluster using our free-tier account because the resources available for free-tier is not enough to run the app smoothly.
 
 When the cluster is created, 
 
@@ -39,7 +39,6 @@ run
 then something like this will show up:
 
 NAME
-kind-kind
 arn:aws:eks:ap-south-1:174376948089:cluster/my-own-cluster
 
 then to use the cluster, run
@@ -49,7 +48,7 @@ then to use the cluster, run
 thus you are connected to your eks cluster.
 
 
-At first install ingress-gateway controller inside you cluster so that the controller can traffic handling, Ingress rules and routing, ssl/tls handling, loadbalancing, health checks and custom freatures.
+At first install ingress-gateway controller inside you cluster so that the controller can handle traffic, handle Ingress rules and routing, ssl/tls handling, loadbalancing, health checks and custom freatures.
 
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.48.1/deploy/static/provider/baremetal/deploy.yaml
 
