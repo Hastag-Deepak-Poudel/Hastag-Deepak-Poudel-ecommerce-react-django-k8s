@@ -62,6 +62,7 @@ jobs:
 
     # Step 5: Execute unit test cases
     - name: Run unit tests
+      working-directory: .
       run: |
         pip install pytest
         pytest .
