@@ -32,21 +32,39 @@ jobs:
   Backend-Build:
     runs-on: self-hosted
     needs: Frontend-Build
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-           python-version: 3.8
-      - name: Install requirements
-        working-directory: backend
-        run: |
-            pip install -r requirements.txt
-      - name: Run tests
-        run: |
-            python manage.py test
+    # Step 1: Check out the repository code
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Step 2: Install and configure the Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip' # Automatically caches installed packages
+
+    # Step 3: Install application dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # Step 4: Run code style linters
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings.
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    # Step 5: Execute unit test cases
+    - name: Run unit tests
+      run: |
+        pip install pytest
+        pytest
     
   Sonarqube:
     name: Build and analyze
