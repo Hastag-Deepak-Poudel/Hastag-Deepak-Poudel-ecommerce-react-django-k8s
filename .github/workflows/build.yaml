@@ -175,5 +175,5 @@ jobs:
         file: ./source-code/Dockerfile
         push: true
         tags: |
-          ${{ vars.DOCKERHUB_USERNAME }}/dice-app:1.1
-          ${{ vars.DOCKERHUB_USERNAME }}/dice-app:${{ github.sha }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:1.1
+          ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:${{ github.sha }}
