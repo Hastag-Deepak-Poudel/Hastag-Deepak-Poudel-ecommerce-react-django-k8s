@@ -31,6 +31,7 @@ jobs:
         
   Backend-Build:
     runs-on: self-hosted
+    needs: Frontend-Build
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
@@ -50,7 +51,7 @@ jobs:
   Sonarqube:
     name: Build and analyze
     runs-on: self-hosted
-    needs: build-and-test
+    needs: Backend-Build
 
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
