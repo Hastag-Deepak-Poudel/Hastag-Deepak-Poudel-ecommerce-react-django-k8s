@@ -3,8 +3,8 @@ name: Continuous Integration
 # Trigger the workflow on pushes or pull requests to the main branch
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [ main ]
+    # push:
+    #   branches: [ main ]
 
 jobs:
   Frontend-Build:
@@ -28,7 +28,7 @@ jobs:
       run: |
         npm ci
         npm test
-        
+
   Backend-Build:
     runs-on: self-hosted
     needs: Frontend-Build
@@ -64,8 +64,8 @@ jobs:
     - name: Run unit tests
       run: |
         pip install pytest
-        pytest
-    
+        pytest .
+
   Sonarqube:
     name: Build and analyze
     runs-on: self-hosted
