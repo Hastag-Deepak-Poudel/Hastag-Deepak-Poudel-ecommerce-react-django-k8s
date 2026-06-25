@@ -1,199 +1,208 @@
-# name: Continuous Integration
+name: Continuous Integration
 
-# # Trigger the workflow on pushes or pull requests to the main branch
-# on:
-#   workflow_dispatch:
-#     # push:
-#     #   branches: [ main ]
+# Trigger the workflow on pushes or pull requests to the main branch
+on:
+  workflow_dispatch:
+    # push:
+    #   branches: [ main ]
 
-# jobs:
-#   Frontend-Build:
-#     # Run this job on an Ubuntu Linux runner
-#     runs-on: self-hosted
+jobs:
+  Frontend-Build:
+    # Run this job on an Ubuntu Linux runner
+    runs-on: self-hosted
 
-#     steps:
-#     # Step 1: Check out the repository code onto the runner
-#     - name: Check out repository code
-#       uses: actions/checkout@v4
+    steps:
+    # Step 1: Check out the repository code onto the runner
+    - name: Check out repository code
+      uses: actions/checkout@v4
 
-#     # Step 2: Install Node.js on the runner environment
-#     - name: Set up Node.js
-#       uses: actions/setup-node@v4
-#       with:
-#         node-version: '20'
+    # Step 2: Install Node.js on the runner environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
 
-#     # Step 3: Install dependencies and run tests
-#     - name: Install dependencies and test
-#       working-directory: frontend
-#       run: |
-#         npm ci
-#         npm test
+    # Step 3: Install dependencies and run tests
+    - name: Install dependencies and test
+      working-directory: frontend
+      run: |
+        npm ci
+        npm test
 
-#   Backend-Build:
-#     runs-on: self-hosted
-#     needs: Frontend-Build
+  backend-build:
+    runs-on: self-hosted
+    needs: frontend-build
+    defaults:
+      run:
+        working-directory: backend
 
-#     steps:
-#     # Step 1: Check out the repository code
-#     - name: Checkout repository
-#       uses: actions/checkout@v4
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: mydb
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+        ports:
+        - 5432:5432
+        options: >-
+          --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
+    env:
+      DEBUG: "0"
+      SECRET_KEY: "django-insecure-w+hy1s*#&)2#hp_mvp=eb%r)4g%jv93e&k4k0h3n0u$(*n-_eb"
+      DB_NAME: mydb
+      DB_USER: myuser
+      DB_PASSWORD: mypassword
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
 
-#     # Step 2: Install and configure the Python environment
-#     - name: Set up Python
-#       uses: actions/setup-python@v5
-#       with:
-#         python-version: '3.12'
-#         cache: 'pip' # Automatically caches installed packages
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-#     # Step 3: Install application dependencies
-#     - name: Install dependencies
-#       run: |
-#         python -m pip install --upgrade pip
-#         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
 
-#     # Step 4: Run code style linters
-#     - name: Lint with flake8
-#       run: |
-#         pip install flake8
-#         # stop the build if there are Python syntax errors or undefined names
-#         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#         # exit-zero treats all errors as warnings.
-#         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-#     # Step 5: Execute unit test cases
-#     - name: Run unit tests
-#       working-directory: .
-#       run: |
-#         pip install pytest
-#         pytest 
+    - name: Run migrations
+      run: python manage.py migrate
 
-#   Sonarqube:
-#     name: Build and analyze
-#     runs-on: self-hosted
-#     needs: Backend-Build
+    - name: Run tests
+      run: python manage.py test
 
-#     steps:
-#     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-#       with:
-#         fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-#     - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
-#       env:
-#         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  Sonarqube:
+    name: Build and analyze
+    runs-on: self-hosted
+    needs: Backend-Build
 
-#   Trivy-Scan:
-#     name: Trivy Scan
-#     runs-on: self-hosted
-#     needs: Sonarqube
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      with:
+        fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+    - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-#     permissions:
-#       contents: read # Required to checkout and read repo files
-#       security-events: write # Required to upload SARIF files to Security tab
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v4
+  Trivy-Scan:
+    name: Trivy Scan
+    runs-on: self-hosted
+    needs: Sonarqube
 
-#     - name: Run Trivy vulnerability scanner in repo mode
-#       uses: aquasecurity/trivy-action@v0.36.0
-#       with:
-#         scan-type: 'fs'
-#         ignore-unfixed: true
-#         format: 'sarif'
-#         output: 'trivy-results.sarif'
-#         severity: 'CRITICAL'
+    permissions:
+      contents: read # Required to checkout and read repo files
+      security-events: write # Required to upload SARIF files to Security tab
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-#     - name: Upload Trivy scan results to GitHub Security tab
-#       uses: github/codeql-action/upload-sarif@v4
-#       with:
-#         sarif_file: 'trivy-results.sarif'
+    - name: Run Trivy vulnerability scanner in repo mode
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL'
 
-#   terraform_security_scan:
-#     runs-on: self-hosted
-#     needs: Trivy-Scan
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: 'trivy-results.sarif'
 
-#     permissions:
-#       contents: read # Required to checkout and read repo files
-#       security-events: write # Required to upload SARIF files to Security tab
+  terraform_security_scan:
+    runs-on: self-hosted
+    needs: Trivy-Scan
 
-#     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v4
+    permissions:
+      contents: read # Required to checkout and read repo files
+      security-events: write # Required to upload SARIF files to Security tab
 
-#     - name: Scan Terraform
-#       uses: aquasecurity/trivy-action@v0.36.0
-#       with:
-#         scan-type: 'fs'
-#         scan-ref: 'terraform-template/' # Path to your Terraform files  
-#         format: 'sarif'
-#         scanners: 'vuln,secret,misconfig'
-#         severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
-#         exit-code: 0
-#         output: 'trivy-terraform-results.sarif'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-#     - name: Upload Trivy scan results to GitHub Security tab
-#       uses: github/codeql-action/upload-sarif@v4
-#       with:
-#         sarif_file: 'trivy-terraform-results.sarif'
+    - name: Scan Terraform
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'fs'
+        scan-ref: 'terraform-template/' # Path to your Terraform files  
+        format: 'sarif'
+        scanners: 'vuln,secret,misconfig'
+        severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
+        exit-code: 0
+        output: 'trivy-terraform-results.sarif'
 
-#   docker_security_scan:
-#     runs-on: self-hosted
-#     needs: terraform_security_scan
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: 'trivy-terraform-results.sarif'
 
-#     permissions:
-#       contents: read # Required to checkout and read repo files
-#       security-events: write # Required to upload SARIF files to Security tab\
+  docker_security_scan:
+    runs-on: self-hosted
+    needs: terraform_security_scan
 
-#     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v4
+    permissions:
+      contents: read # Required to checkout and read repo files
+      security-events: write # Required to upload SARIF files to Security tab\
 
-#     - name: Build Docker image
-#       run: |
-#         cd source-code
-#         docker build -t ttapp:latest .
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-#     - name: Run Trivy vulnerability scan
-#       uses: aquasecurity/trivy-action@v0.36.0
-#       with:
-#         scan-type: 'image'
-#         image-ref: 'ttapp:latest'
-#         format: 'sarif'
-#         exit-code: 0
-#         severity: 'CRITICAL,HIGH'
-#         output: 'trivy-results.sarif'
+    - name: Build Docker image
+      run: |
+        cd source-code
+        docker build -t ttapp:latest .
 
-#     - name: Upload Trivy scan results to GitHub Security tab
-#       uses: github/codeql-action/upload-sarif@v4
-#       with:
-#         sarif_file: 'trivy-results.sarif'
+    - name: Run Trivy vulnerability scan
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'image'
+        image-ref: 'ttapp:latest'
+        format: 'sarif'
+        exit-code: 0
+        severity: 'CRITICAL,HIGH'
+        output: 'trivy-results.sarif'
 
-#   docker:
-#     runs-on: self-hosted
-#     name: Dockerizing the app
-#     needs: docker_security_scan
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: 'trivy-results.sarif'
 
-#     steps:
-#     - name: Check out repository code
-#       uses: actions/checkout@v4
+  docker:
+    runs-on: self-hosted
+    name: Dockerizing the app
+    needs: docker_security_scan
 
-#     - name: Login to Docker Hub
-#       uses: docker/login-action@v4
-#       with:
-#         username: ${{ secrets.DOCKERHUB_USERNAME }}
-#         password: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
 
-#     - name: Set up QEMU
-#       uses: docker/setup-qemu-action@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-#     - name: Set up Docker Buildx
-#       uses: docker/setup-buildx-action@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
 
-#     - name: Build and push
-#       uses: docker/build-push-action@v7
-#       with:
-#         context: ./source-code
-#         file: ./source-code/Dockerfile
-#         push: true
-#         tags: |
-#           ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:1.1
-#           ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:${{ github.sha }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: ./source-code
+        file: ./source-code/Dockerfile
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:1.1
+          ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:${{ github.sha }}
