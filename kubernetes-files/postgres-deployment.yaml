@@ -21,6 +21,12 @@ spec:
           mountPath: /var/lib/postgresql/data
           subPath: postgres
         env:
+        
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: db 
 
         - name: POSTGRES_USER
           valueFrom:
@@ -32,13 +38,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: postgres-credentials
-              key: password
-
-        - name: POSTGRES_DB
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: db  
+              key: password 
 
       restartPolicy: Always
       volumes:
