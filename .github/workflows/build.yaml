@@ -132,7 +132,7 @@ jobs:
       uses: aquasecurity/trivy-action@v0.36.0
       with:
         scan-type: 'fs'
-        scan-ref: 'terraform-template/' # Path to your Terraform files  
+        scan-ref: 'terraform/' # Path to your Terraform files  
         format: 'sarif'
         scanners: 'vuln,secret,misconfig'
         severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
@@ -144,7 +144,7 @@ jobs:
       with:
         sarif_file: 'trivy-terraform-results.sarif'
 
-  docker_security_scan:
+  docker_security_scan_frontend:
     runs-on: self-hosted
     needs: terraform_security_scan
 
@@ -158,14 +158,14 @@ jobs:
 
     - name: Build Docker image
       run: |
-        cd source-code
-        docker build -t ttapp:latest .
+        cd frontend
+        docker build -t ttapp2:latest .
 
     - name: Run Trivy vulnerability scan
       uses: aquasecurity/trivy-action@v0.36.0
       with:
         scan-type: 'image'
-        image-ref: 'ttapp:latest'
+        image-ref: 'ttapp1:latest'
         format: 'sarif'
         exit-code: 0
         severity: 'CRITICAL,HIGH'
@@ -176,10 +176,42 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
-  docker:
+  docker_security_scan_backend:
     runs-on: self-hosted
-    name: Dockerizing the app
-    needs: docker_security_scan
+    needs: docker_security_scan_frontend
+
+    permissions:
+      contents: read # Required to checkout and read repo files
+      security-events: write # Required to upload SARIF files to Security tab\
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: |
+        cd backend
+        docker build -t ttapp2:latest .
+
+    - name: Run Trivy vulnerability scan
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'image'
+        image-ref: 'ttapp2:latest'
+        format: 'sarif'
+        exit-code: 0
+        severity: 'CRITICAL,HIGH'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  dockerize_the_frontend:
+    runs-on: self-hosted
+    name: Dockerizing the frontend
+    needs: docker_security_scan_backend
 
     steps:
     - name: Check out repository code
@@ -200,9 +232,40 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v7
       with:
-        context: ./source-code
-        file: ./source-code/Dockerfile
+        context: ./frontend
+        file: ./frontend/Dockerfile
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:1.1
-          ${{ secrets.DOCKERHUB_USERNAME }}/dice-app:${{ github.sha }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/e-comm-frontend:1.1
+          ${{ secrets.DOCKERHUB_USERNAME }}/e-comm-frontend:${{ github.sha }}
+
+  dockerize_the_backend:
+    runs-on: self-hosted
+    name: Dockerizing the backend
+    needs: dockerize_the_frontend
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/e-comm-backend:1.1
+          ${{ secrets.DOCKERHUB_USERNAME }}/e-comm-backend:${{ github.sha }}
