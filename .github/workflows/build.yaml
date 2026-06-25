@@ -159,7 +159,7 @@ jobs:
     - name: Build Docker image
       run: |
         cd frontend
-        docker build -t ttapp2:latest .
+        docker build -t ttapp1:latest .
 
     - name: Run Trivy vulnerability scan
       uses: aquasecurity/trivy-action@v0.36.0
