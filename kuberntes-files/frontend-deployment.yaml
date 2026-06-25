@@ -14,14 +14,14 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: silversoul007/full-stack-django-react:frontend
+        image: silversoul007/e-comm-frontend:1.1
         imagePullPolicy: Always
         ports:
         - containerPort: 80
         resources:
           requests:
             memory: "64Mi"
-            cpu: "250m"    
+            cpu: "250m"
           limits:
             memory: "128Mi"
             cpu: "500m"

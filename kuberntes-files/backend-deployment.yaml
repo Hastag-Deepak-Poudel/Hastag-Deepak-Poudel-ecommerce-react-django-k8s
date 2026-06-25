@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: silversoul007/full-stack-django-react:backend
+        image: silversoul007/e-comm-backend:1.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
