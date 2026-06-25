@@ -50,11 +50,11 @@ jobs:
     env:
       DEBUG: "0"
       SECRET_KEY: "django-insecure-w+hy1s*#&)2#hp_mvp=eb%r)4g%jv93e&k4k0h3n0u$(*n-_eb"
-      DB_NAME: mydb
-      DB_USER: myuser
-      DB_PASSWORD: mypassword
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: 5432
 
     steps:
     - name: Checkout
