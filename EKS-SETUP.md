@@ -25,8 +25,9 @@ THERE ARE 3 WAYS TO CREATE EKS CLUSTER. THEY ARE:
 When the cluster is created, 
 
 run this in terminal,
-
+```
 	aws eks --region <Region-Name> update-kubeconfig --name <Cluster-Name>
+```
 
 example:
 	aws eks --region ap-south-1 update-kubeconfig --name my-own-cluster
@@ -39,11 +40,11 @@ run
 then something like this will show up:
 
 NAME
-arn:aws:eks:ap-south-1:174376948089:cluster/my-own-cluster
+arn:aws:eks:ap-south-1:<your-aws-account-id>:cluster/my-own-cluster
 
 then to use the cluster, run
 
-	kubectl config use-context arn:aws:eks:ap-south-1:174376948089:cluster/my-own-cluster 
+	kubectl config use-context arn:aws:eks:ap-south-1:<your-aws-account-id>:cluster/my-own-cluster 
 
 thus you are connected to your eks cluster.
 
@@ -61,4 +62,4 @@ After you are done experimenting around,
 
 	1. Delete all the resources you have applied
 	2. run terraform destroy
-	3. run kubectl config delete-cluster arn:aws:eks:ap-south-1:174376948089:cluster/my-own-cluster 
+	3. run kubectl config delete-cluster arn:aws:eks:ap-south-1:<your-aws-account-id>:cluster/my-own-cluster 
