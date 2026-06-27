@@ -1,11 +1,3 @@
-# install Docker 
-sudo apt update
-
-sudo apt install -y docker.io
-
-sudo usermod -aG docker $USER
-
-
 # install Kubectl
 
 sudo apt-get update
@@ -73,11 +65,20 @@ sudo apt-get update
 sudo apt-get install trivy
 
 
-# run sonarqube using docker
+# Install docker
+
 sudo apt update
+
+sudo apt install docker.io
+
+sudo groupadd docker
+
+sudo usermod -aG docker $USER
 
 newgrp docker
 
+# Run Sonarqube using Docker
+
 docker ps
 
-# docker run -d --name sonarqube -p 9000:9000 sonarqube
+docker run -d --name sonarqube -p 9000:9000 sonarqube

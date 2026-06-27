@@ -93,18 +93,23 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 
+# Install docker
+
 sudo apt update
 
+sudo apt install docker.io
 
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo groupadd docker
 
 sudo usermod -aG docker $USER
 
 newgrp docker
 
-docker run -d --name sonarqube -p 9000:9000 sonarqube
+# Run Sonarqube using Docker
 
 docker ps
+
+docker run -d --name sonarqube -p 9000:9000 sonarqube
 
 ```
 
