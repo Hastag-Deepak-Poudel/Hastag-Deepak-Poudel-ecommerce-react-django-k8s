@@ -1,6 +1,6 @@
-# End to End ReactJs deployment
+# End to End Full Stack App deployment where Django as Backend and ReactJs as Frontend and Postgres as Database
 
-This readme file contains all the necessary step to run a reactJs app using Github actions as CI and ArgoCD as CD.
+This project contains all the necessary step to run a 3-tier app using Github actions as CI and ArgoCD as CD.
 
 It is better to run this on EC2 instance so that so we dont need to install all the software in our local machine.
 
@@ -134,7 +134,7 @@ nodes:
     protocol: TCP
 
 - role: worker
-- role: worker
+- role: workernewgrp docker
 - role: worker
 ```
 
