@@ -317,7 +317,7 @@ helm install my-prometheus prometheus-community/kube-prometheus-stack --namespac
 Forward the Prometheus server to port 9090
 
 ```bash
-kubectl port-forward svc/my-prometheus-prometheus --address 0.0.0.0 9090:9090 -n monitoring
+kubectl port-forward -n monitoring --address 0.0.0.0 svc/my-prometheus-kube-prometh-prometheus 9090:9090
 ```
 
 ###  Accessing the Dashboards
@@ -325,7 +325,7 @@ kubectl port-forward svc/my-prometheus-prometheus --address 0.0.0.0 9090:9090 -n
 Find the Grafana service name and forward it to port 3000
 
 ```bash
-kubectl port-forward svc/my-prometheus-grafana --address 3000:80 -n monitoring
+kubectl port-forward svc/my-prometheus-grafana --address 0.0.0.0 3000:80 -n monitoring
 ```
 Default Username:  admin
 
