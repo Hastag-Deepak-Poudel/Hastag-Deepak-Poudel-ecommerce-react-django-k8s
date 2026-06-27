@@ -69,7 +69,7 @@ sudo apt-get install trivy
 
 sudo apt update
 
-sudo apt install docker.io
+sudo apt install docker.io -y
 
 sudo groupadd docker
 
